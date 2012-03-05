@@ -7,13 +7,25 @@ X(:, size(X, 2)) = [];
 [m, n] = size(X);
 
 %====================== input test data =========================
-
 % normalize X
 X = (X - ones(m, 1) * mean(X)) ./(ones(m,1) * sqrt( var(X)) );
 
 Kernel = @gaussian;
-C = 100;
-param = 1;
+
+log2c_min = -7;
+log2c_max =  7;
+log2g_min = -7;
+log2g_max =  7;
+
+brute_erorr = zeros(log2c_max - log2c_min + 1, log2g_max - log2g_min + 1);
+
+for log2c = log2c_min:log2c_max
+for log2g = log2g_min:log2g_max
+
+C = 2.^(log2c), param = 2.^(log2g)
+
+%C = 100;
+%param = 1;
 
 % ===================== k-fold ==================================
 kfold_max = 10;
@@ -64,8 +76,14 @@ for kfold_index = 1:kfold_max
   end
 
   error_num = sum(Ycv ~= Ypredict);
-  error_table(kfold_index) = error_num/mcv;
+  error_table(kfold_index) = error_num/mcv
 
-  confusion_matrix(:,:,kfold_index)
+  confusion_matrix(:,:,kfold_index);
+
 
 end % k-fold
+
+  brute_erorr(log2c-log2c_min + 1, log2g -log2g_min + 1) = mean(error_table);
+
+end
+end
