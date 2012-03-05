@@ -11,8 +11,8 @@ X(:, size(X, 2)) = [];
 % normalize X
 X = (X - ones(m, 1) * mean(X)) ./(ones(m,1) * sqrt( var(X)) );
 
-Kernel = @gaussianKernel;
-C = 5;
+Kernel = @gaussian;
+C = 40;
 
 % ===================== k-fold ==================================
 kfold_max = 10;
@@ -42,16 +42,24 @@ for kfold_index = 1:kfold_max
 %================== train 10 binary svm =================
   disp(['===== ' int2str(kfold_index) '-fold =====' ]);
 
-  w = zeros(n, 10);
-  b = zeros(10, 1);
+  Ksize = 1;
 
-  for ith = 1:10
-    [A, b(ith), w(:,ith)] = qsvmTrain(Xhold, (Yhold==ith), C, Kernel);
+  w = zeros(n, Ksize);
+  b = zeros(Ksize, 1);
+
+  for ith = 1:Ksize
+    disp(['===== train ' int2str(ith) '-th classifier =====' ]);
+    [A, b(ith), w(:,ith)] = qsvmTrain(Xhold, (Yhold==(ith-1)), C, Kernel);
   end
 
-  for idx = 1:mcv
-    Ypredict(idx) = qsvmPredict(Xcv(idx,:), b, w);
-  end
+  score = Xcv * w(:,1) + b(1);
+  Ypredict = (score >=0);
+
+  Yt = (Ycv == 0);
+
+  sum(Ypredict == Yt)
+
+%  Ypredict(idx) = qsvmPredict(Xcv, b, w);
 
   for y_index = 1: length(Ycv)
     confusion_matrix(Ycv(y_index)+1, Ypredict(y_index)+1, kfold_index) = ...

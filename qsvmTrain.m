@@ -10,16 +10,21 @@ y = 2*Y-1;  % {0,1} -> {-1, +1}
 eps = 1e-3;
 tau = 1e-12;
 
-param = 1;
+param = 0.0625;
 
+disp('precompute start');
+tic
 % this is for cache
 Q = zeros(m, m);
 
 for ii = 1:m
-  for jj = 1:m
-    Q(ii,jj) = y(ii)*y(jj)*Kernel(X(i,:),X(j,:),param);
+  for jj = ii:m
+    Q(ii,jj) = y(ii)*y(jj)*Kernel(X(ii,:),X(jj,:),param);
+    Q(jj,ii) = Q(ii,jj);
   end
 end
+toc
+disp('precompute done');
 % ===================
 
 A = zeros(m, 1); % alpha array A to all zero
@@ -105,8 +110,9 @@ G = -ones(m, 1); % gradient array G to all -1
       G(t) = G(t) + Q(t,i)*deltaAi + Q(t,j)*deltaAj;
     end
   end
-
   
   w = ((A.*y)'*X)';
+
+  disp('train done');
 
 end
