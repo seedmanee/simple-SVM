@@ -3,8 +3,6 @@ function [A, b, w] = qsvmTrain(X, Y, C, Kernel)
 % y(i)*y(j)*Kernel(X(i,:),X(j,:),param) = y(i) * y(j) * Kernel(i, j),   K: kernel matrix
 % m: number of instances
 
-
-
 [m, n] = size(X);
 
 y = 2*Y-1;  % {0,1} -> {-1, +1}
@@ -13,6 +11,16 @@ eps = 1e-3;
 tau = 1e-12;
 
 param = 1;
+
+% this is for cache
+Q = zeros(m, m);
+
+for ii = 1:m
+  for jj = 1:m
+    Q(ii,jj) = y(ii)*y(jj)*Kernel(X(i,:),X(j,:),param);
+  end
+end
+% ===================
 
 A = zeros(m, 1); % alpha array A to all zero
 G = -ones(m, 1); % gradient array G to all -1
@@ -43,9 +51,10 @@ G = -ones(m, 1); % gradient array G to all -1
         end
 
         if (b>0)
-          a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
-              y(t)*y(t)*Kernel(X(t,:),X(t,:),param) - ...
-              2*y(i)*y(t)*y(i)*y(t)*Kernel(X(i,:),X(t,:),param);
+%          a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
+%              y(t)*y(t)*Kernel(X(t,:),X(t,:),param) - ...
+%              2*y(i)*y(t)*y(i)*y(t)*Kernel(X(i,:),X(t,:),param);
+          a = Q(i,i) + Q(t,t) - 2*y(i)*y(t)*Q(i,t);
           if (a <= 0)
             a = tau;
           end
@@ -62,9 +71,11 @@ G = -ones(m, 1); % gradient array G to all -1
     end
     %% end of select working set
 
-    a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
-        y(j)*y(j)*Kernel(X(j,:),X(j,:),param) - ...
-        2*y(i)*y(j)*y(i)*y(j)*Kernel(X(i,:),X(j,:),param);
+    a = Q(i,i) + Q(j,j) - 2*y(i)*y(j)*Q(i,j);
+
+%    a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
+%        y(j)*y(j)*Kernel(X(j,:),X(j,:),param) - ...
+%        2*y(i)*y(j)*y(i)*y(j)*Kernel(X(i,:),X(j,:),param);
     if ( a <= 0)
       a = tau;
     end
@@ -89,8 +100,9 @@ G = -ones(m, 1); % gradient array G to all -1
     deltaAj = A(j) - oldAj;
 
     for t = 1:m
-      G(t) = G(t) + y(t)*y(i)*Kernel(X(t,:),X(i,:),param)*deltaAi + ...
-             y(t)*y(j)*Kernel(X(t,:),X(j,:),param)*deltaAj;
+%      G(t) = G(t) + y(t)*y(i)*Kernel(X(t,:),X(i,:),param)*deltaAi + ...
+%             y(t)*y(j)*Kernel(X(t,:),X(j,:),param)*deltaAj;
+      G(t) = G(t) + Q(t,i)*deltaAi + Q(t,j)*deltaAj;
     end
   end
 
