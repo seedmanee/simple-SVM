@@ -1,6 +1,6 @@
-function [A, b, w] = qsvmTrain(X, Y, C, Kernel)
+function [A, b, w] = qsvmTrain(X, Y, C, param, Kernel)
 % input y = {-1, +1}
-% y(i)*y(j)*Kernel(X(i,:),X(j,:),param) = y(i) * y(j) * Kernel(i, j),   K: kernel matrix
+% y(i)*y(j)*K(i,j) = y(i) * y(j) * Kernel(i, j),   K: kernel matrix
 % m: number of instances
 
 [m, n] = size(X);
@@ -10,21 +10,24 @@ y = 2*Y-1;  % {0,1} -> {-1, +1}
 eps = 1e-3;
 tau = 1e-12;
 
-param = 0.0625;
-
-disp('precompute start');
-tic
+%disp('precompute start');
+%tic
 % this is for cache
 Q = zeros(m, m);
 
-for ii = 1:m
-  for jj = ii:m
-    Q(ii,jj) = y(ii)*y(jj)*Kernel(X(ii,:),X(jj,:),param);
-    Q(jj,ii) = Q(ii,jj);
-  end
-end
-toc
-disp('precompute done');
+% special optimization
+X2 = sum(X.^2, 2);
+K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
+K = Kernel(1, 0, param) .^ K;
+
+%for ii = 1:m
+%  for jj = ii:m
+%    Q(ii,jj) = y(ii)*y(jj)*Kernel(X(ii,:),X(jj,:),param);
+%    Q(jj,ii) = Q(ii,jj);
+%  end
+%end
+%toc
+%disp('precompute done');
 % ===================
 
 A = zeros(m, 1); % alpha array A to all zero
@@ -59,7 +62,7 @@ G = -ones(m, 1); % gradient array G to all -1
 %          a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
 %              y(t)*y(t)*Kernel(X(t,:),X(t,:),param) - ...
 %              2*y(i)*y(t)*y(i)*y(t)*Kernel(X(i,:),X(t,:),param);
-          a = Q(i,i) + Q(t,t) - 2*y(i)*y(t)*Q(i,t);
+          a = y(i)*y(i)*K(i,i) + y(t)*y(t)*K(t,t) - 2*y(i)*y(t)*y(i)*y(t)*K(i,t);
           if (a <= 0)
             a = tau;
           end
@@ -76,7 +79,7 @@ G = -ones(m, 1); % gradient array G to all -1
     end
     %% end of select working set
 
-    a = Q(i,i) + Q(j,j) - 2*y(i)*y(j)*Q(i,j);
+    a = y(i)*y(i)*K(i,i) + y(j)*y(j)*K(j,j) - 2*y(i)*y(j)*y(i)*y(j)*K(i,j);
 
 %    a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
 %        y(j)*y(j)*Kernel(X(j,:),X(j,:),param) - ...
@@ -107,12 +110,12 @@ G = -ones(m, 1); % gradient array G to all -1
     for t = 1:m
 %      G(t) = G(t) + y(t)*y(i)*Kernel(X(t,:),X(i,:),param)*deltaAi + ...
 %             y(t)*y(j)*Kernel(X(t,:),X(j,:),param)*deltaAj;
-      G(t) = G(t) + Q(t,i)*deltaAi + Q(t,j)*deltaAj;
+      G(t) = G(t) + y(t)*y(i)*K(t,i)*deltaAi + y(t)*y(j)*K(t,j)*deltaAj;
     end
   end
   
   w = ((A.*y)'*X)';
 
-  disp('train done');
+%  disp('train done');
 
 end

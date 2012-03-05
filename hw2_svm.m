@@ -12,7 +12,8 @@ X(:, size(X, 2)) = [];
 X = (X - ones(m, 1) * mean(X)) ./(ones(m,1) * sqrt( var(X)) );
 
 Kernel = @gaussian;
-C = 40;
+C = 100;
+param = 1;
 
 % ===================== k-fold ==================================
 kfold_max = 10;
@@ -42,24 +43,20 @@ for kfold_index = 1:kfold_max
 %================== train 10 binary svm =================
   disp(['===== ' int2str(kfold_index) '-fold =====' ]);
 
-  Ksize = 1;
+  Ksize = 10;
 
   w = zeros(n, Ksize);
-  b = zeros(Ksize, 1);
+  b = zeros(1, Ksize);
 
   for ith = 1:Ksize
-    disp(['===== train ' int2str(ith) '-th classifier =====' ]);
-    [A, b(ith), w(:,ith)] = qsvmTrain(Xhold, (Yhold==(ith-1)), C, Kernel);
+    [A, b(ith), w(:,ith)] = qsvmTrain(Xhold, (Yhold==(ith-1)), C, param, Kernel);
   end
 
-  score = Xcv * w(:,1) + b(1);
-  Ypredict = (score >=0);
+  % predict, choose output with most confident
+  score = Xcv * w + ones(mcv,1)*b;
 
-  Yt = (Ycv == 0);
-
-  sum(Ypredict == Yt)
-
-%  Ypredict(idx) = qsvmPredict(Xcv, b, w);
+  [pre_val, pre_idx] = max(score');
+  Ypredict = (pre_idx - 1)';
 
   for y_index = 1: length(Ycv)
     confusion_matrix(Ycv(y_index)+1, Ypredict(y_index)+1, kfold_index) = ...
@@ -68,8 +65,6 @@ for kfold_index = 1:kfold_max
 
   error_num = sum(Ycv ~= Ypredict);
   error_table(kfold_index) = error_num/mcv;
-
-%  disp([int2str(k) '-nearest-neighbor error rate: ' num2str(error_num/mcv)]);
 
   confusion_matrix(:,:,kfold_index)
 
