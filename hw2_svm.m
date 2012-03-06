@@ -12,18 +12,23 @@ X = (X - ones(m, 1) * mean(X)) ./(ones(m,1) * sqrt( var(X)) );
 
 Kernel = @gaussian;
 
-log2c_min = -7;
-log2c_max =  7;
-log2g_min = -7;
-log2g_max =  7;
+log2c_min = -10;
+log2c_max =  1;
+log2g_min = -10;
+log2g_max =  1;
 
 brute_erorr = zeros(log2c_max - log2c_min + 1, log2g_max - log2g_min + 1);
 
 for log2c = log2c_min:log2c_max
 for log2g = log2g_min:log2g_max
 
-C = 2.^(log2c), param = 2.^(log2g)
+%log2c = -5;
+%log2g = -5;
 
+C = 2.^(log2c);
+param = 2.^(log2g);
+
+disp(['===== ' int2str(log2c) ' ' int2str(log2g) ' =====' ]);
 %C = 100;
 %param = 1;
 
@@ -34,6 +39,8 @@ error_table = zeros(kfold_max,1);
 confusion_matrix = zeros(10, 10, kfold_max);
 
 for kfold_index = 1:kfold_max
+
+disp(['===== ' int2str(kfold_index) '-fold =====' ]);
   Xhold = X;
   start_pt = (kfold_index - 1) * ksize + 1;
   end_pt = min(start_pt + ksize - 1, m);
@@ -53,7 +60,6 @@ for kfold_index = 1:kfold_max
   Ypredict = zeros(mcv, 1);     % this is predict output
 
 %================== train 10 binary svm =================
-  disp(['===== ' int2str(kfold_index) '-fold =====' ]);
 
   Ksize = 10;
 
@@ -76,10 +82,13 @@ for kfold_index = 1:kfold_max
   end
 
   error_num = sum(Ycv ~= Ypredict);
-  error_table(kfold_index) = error_num/mcv
+  error_rate = error_num/mcv
+  error_table(kfold_index) = error_num/mcv;
+
+  error_table = error_rate; 
+  break;
 
   confusion_matrix(:,:,kfold_index);
-
 
 end % k-fold
 

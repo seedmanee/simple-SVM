@@ -46,9 +46,11 @@ else
     end
 end
 
+pred = p;
+
 % Convert predictions into 0 / 1
-pred(p >= 0) =  1;
-pred(p <  0) =  0;
+%pred(p >= 0) =  1;
+%pred(p <  0) =  0;
 
 end
 

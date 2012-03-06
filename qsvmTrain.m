@@ -16,18 +16,16 @@ tau = 1e-12;
 Q = zeros(m, m);
 
 % special optimization
-X2 = sum(X.^2, 2);
-K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
-K = Kernel(1, 0, param) .^ K;
-
-%for ii = 1:m
-%  for jj = ii:m
-%    Q(ii,jj) = y(ii)*y(jj)*Kernel(X(ii,:),X(jj,:),param);
-%    Q(jj,ii) = Q(ii,jj);
-%  end
+%if strcmp(func2str(kernel), 'linear')
+%  K = X*X';
+%elseif strcmp(func2str(kernel), 'polynomial')
+  K = (param*(X*X'+1)).^5;
+%elseif strfind(func2str(kernel), 'gaussian')
+%  X2 = sum(X.^2, 2);
+%  K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
+%  K = Kernel(1, 0, param) .^ K;
 %end
-%toc
-%disp('precompute done');
+
 % ===================
 
 A = zeros(m, 1); % alpha array A to all zero
