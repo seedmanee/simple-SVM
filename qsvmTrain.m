@@ -19,11 +19,11 @@ Q = zeros(m, m);
 %if strcmp(func2str(kernel), 'linear')
 %  K = X*X';
 %elseif strcmp(func2str(kernel), 'polynomial')
-  K = (param*(X*X'+1)).^5;
+%  K = (param*(X*X'+1)).^5;
 %elseif strfind(func2str(kernel), 'gaussian')
-%  X2 = sum(X.^2, 2);
-%  K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
-%  K = Kernel(1, 0, param) .^ K;
+  X2 = sum(X.^2, 2);
+  K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
+  K = Kernel(1, 0, param) .^ K;
 %end
 
 % ===================

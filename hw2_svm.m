@@ -1,6 +1,11 @@
 %======================== load file ===========================
 clear all;
 X = load('pendigits-orig.csv');
+
+%del = find(X(:,17)==1); X(del,:)=[];
+%del = find(X(:,17)==5); X(del,:)=[];
+%del = find(X(:,17)==8); X(del,:)=[];
+
 Y = X(:, size(X, 2) );
 X(:, size(X, 2)) = [];
 
@@ -12,23 +17,25 @@ X = (X - ones(m, 1) * mean(X)) ./(ones(m,1) * sqrt( var(X)) );
 
 Kernel = @gaussian;
 
-log2c_min = -10;
-log2c_max =  1;
-log2g_min = -10;
-log2g_max =  1;
+log2c_min = -8;
+log2c_max =  8;
+log2g_min = -8;
+log2g_max =  8;
 
 brute_erorr = zeros(log2c_max - log2c_min + 1, log2g_max - log2g_min + 1);
 
-for log2c = log2c_min:log2c_max
-for log2g = log2g_min:log2g_max
+%for log2c = log2c_min:2:log2c_max
+%for log2g = log2g_min:2:log2g_max
 
-%log2c = -5;
-%log2g = -5;
+%log2c = ;
+%log2g = -4.0;
 
-C = 2.^(log2c);
-param = 2.^(log2g);
+%C = 2.^(log2c);
+%param = 2.^(log2g);
+C = 0.25;
+param = 0.0078;
 
-disp(['===== ' int2str(log2c) ' ' int2str(log2g) ' =====' ]);
+%disp(['===== ' int2str(log2c) ' ' int2str(log2g) ' =====' ]);
 %C = 100;
 %param = 1;
 
@@ -85,14 +92,14 @@ disp(['===== ' int2str(kfold_index) '-fold =====' ]);
   error_rate = error_num/mcv
   error_table(kfold_index) = error_num/mcv;
 
-  error_table = error_rate; 
-  break;
+%  error_table = error_rate; 
+%  break;
 
   confusion_matrix(:,:,kfold_index);
 
 end % k-fold
 
-  brute_erorr(log2c-log2c_min + 1, log2g -log2g_min + 1) = mean(error_table);
+%  brute_erorr(log2c-log2c_min + 1, log2g -log2g_min + 1) = mean(error_table);
 
-end
-end
+%end
+%end
