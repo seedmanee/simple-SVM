@@ -13,13 +13,13 @@ tau = 1e-12;
 %disp('precompute start');
 %tic
 % this is for cache
-Q = zeros(m, m);
+%K = zeros(m, m);
 
 % special optimization
 %if strcmp(func2str(kernel), 'linear')
 %  K = X*X';
 %elseif strcmp(func2str(kernel), 'polynomial')
-%  K = (param*(X*X'+1)).^5;
+%  K = (param*(X*X'+1)).^4;
 %elseif strfind(func2str(kernel), 'gaussian')
   X2 = sum(X.^2, 2);
   K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));

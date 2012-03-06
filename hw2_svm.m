@@ -2,10 +2,6 @@
 clear all;
 X = load('pendigits-orig.csv');
 
-%del = find(X(:,17)==1); X(del,:)=[];
-%del = find(X(:,17)==5); X(del,:)=[];
-%del = find(X(:,17)==8); X(del,:)=[];
-
 Y = X(:, size(X, 2) );
 X(:, size(X, 2)) = [];
 
@@ -17,12 +13,12 @@ X = (X - ones(m, 1) * mean(X)) ./(ones(m,1) * sqrt( var(X)) );
 
 Kernel = @gaussian;
 
-log2c_min = -8;
-log2c_max =  8;
-log2g_min = -8;
-log2g_max =  8;
+%log2c_min = -8;
+%log2c_max =  8;
+%log2g_min = -8;
+%log2g_max =  8;
 
-brute_erorr = zeros(log2c_max - log2c_min + 1, log2g_max - log2g_min + 1);
+%brute_erorr = zeros(log2c_max - log2c_min + 1, log2g_max - log2g_min + 1);
 
 %for log2c = log2c_min:2:log2c_max
 %for log2g = log2g_min:2:log2g_max
@@ -36,8 +32,6 @@ C = 0.25;
 param = 0.0078;
 
 %disp(['===== ' int2str(log2c) ' ' int2str(log2g) ' =====' ]);
-%C = 100;
-%param = 1;
 
 % ===================== k-fold ==================================
 kfold_max = 10;
@@ -70,6 +64,7 @@ disp(['===== ' int2str(kfold_index) '-fold =====' ]);
 
   Ksize = 10;
 
+  % store Ksize classifiers
   w = zeros(n, Ksize);
   b = zeros(1, Ksize);
 
