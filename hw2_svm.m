@@ -1,3 +1,6 @@
+% This SVM is based on the following paper
+% http://www.csie.ntu.edu.tw/~cjlin/libsvm/
+% R.-E. Fan, P.-H. Chen, and C.-J. Lin. Working set selection using second order information for training SVM. Journal of Machine Learning Research 6, 1889-1918, 2005.
 
 %======================== load file ===========================
 clear all;
@@ -6,14 +9,19 @@ X = load('pendigits-orig.csv');
 Y = X(:, size(X, 2) );
 X(:, size(X, 2)) = [];
 
+% X is m by n
+% Y is m by 1
+
 [m, n] = size(X);
 
 %====================== input test data =========================
 % normalize X
 X = (X - ones(m, 1) * mean(X)) ./(ones(m,1) * sqrt( var(X)) );
 
+% linear, polynomial, gaussian
 Kernel = 'gaussian';
 
+% brute force try each parameters, log2 base idea is from libsvm
 %log2c_min = -5;
 %log2c_max =  5;
 %log2g_min = -5;
@@ -29,11 +37,10 @@ log2g = 2;
 
 C = 2.^(log2c);
 param = 2.^(log2g);
-%C = 45.25;
-%param = 0.0625;
 
 disp(['===== ' int2str(log2c) ' ' int2str(log2g) ' =====' ]);
 
+% k-fold cross validation
 % ===================== k-fold ==================================
 kfold_max = 10;
 ksize = ceil(m/kfold_max);
@@ -92,7 +99,7 @@ disp(['===== ' int2str(kfold_index) '-fold =====' ]);
   end
 
   error_num = sum(Ycv ~= Ypredict);
-  error_rate = error_num/mcv
+  error_rate = error_num/mcv;
   error_table(kfold_index) = error_num/mcv;
 
 %  error_table = error_rate; 

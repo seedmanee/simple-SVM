@@ -1,30 +1,34 @@
 function [model] = qsvmTrain(X, Y, C, param, Kernel)
-% input y = {-1, +1}
-% K: kernel matrix
-% m: number of instances
+  % input Y = {0, 1}
+  % X: m by n
+  % Y: m by 1
 
-[m, n] = size(X);
+  [m, n] = size(X);
 
-y = 2*Y-1;  % {0,1} -> {-1, +1}
+  y = 2*Y-1;  % {0,1} -> {-1, +1}
 
-eps = 1e-3;
-tau = 1e-12;
+  eps = 1e-3;
+  tau = 1e-12;
 
-% optimization
-if strcmp(Kernel, 'linear')
-  K = param*X*X';
-elseif strcmp(Kernel, 'polynomial')
-  K = (param*(X*X'+1)).^4;
-elseif strcmp(Kernel, 'gaussian')
-  X2 = sum(X.^2, 2);
-  K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
-  K = gaussian(1, 0, param) .^ K;
-end
+  % K: kernel matrix
 
-% ===================
+  % this precompute idea is borrowed from Stanford open course: Machine Learning
+  % optimization
+  if strcmp(Kernel, 'linear')
+    K = param*X*X';
+  elseif strcmp(Kernel, 'polynomial')
+    K = (param*(X*X'+1)).^4;
+  elseif strcmp(Kernel, 'gaussian')
+    X2 = sum(X.^2, 2);
+    K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
+    K = gaussian(1, 0, param) .^ K;
+  end
 
-A = zeros(m, 1); % alpha array A to all zero
-G = -ones(m, 1); % gradient array G to all -1
+  % ===================
+  % the training part is based on the paper of libsvm
+
+  A = zeros(m, 1); % alpha array A to all zero
+  G = -ones(m, 1); % gradient array G to all -1
 
   while 1
     %% ================= select working set
@@ -99,15 +103,14 @@ G = -ones(m, 1); % gradient array G to all -1
     end
   end
   
-  w = ((A.*y)'*X)';
-
-idx = A>0;
-model.X= X(idx,:);
-model.y= y(idx);
-model.b = b;
-model.A = A(idx);
-model.Kernel = Kernel;
-model.param = param;
-model.w = ((A.*y)'*X)';
+  % this model struct is copy from Stanford open course: Machine Learning
+  idx = A>0;
+  model.X= X(idx,:);
+  model.y= y(idx);
+  model.b = b;
+  model.A = A(idx);
+  model.Kernel = Kernel;
+  model.param = param;
+  model.w = ((A.*y)'*X)';
 
 end

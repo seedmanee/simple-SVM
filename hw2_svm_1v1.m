@@ -1,3 +1,4 @@
+% comments on hw2_svm.m
 %======================== load file ===========================
 clear all;
 X = load('pendigits-orig.csv');
@@ -83,7 +84,7 @@ for kfold_index = 1:kfold_max
     end
   end
 
-  % all classifiers vote
+  % all classifiers do majority vote
   vote = zeros(mcv, Ksize);
   for ith = 1:Ksize-1
     for jth = ith+1:Ksize
