@@ -1,6 +1,6 @@
-function [A, b, w] = qsvmTrain(X, Y, C, param, Kernel)
+function [model] = qsvmTrain(X, Y, C, param, Kernel)
 % input y = {-1, +1}
-% y(i)*y(j)*K(i,j) = y(i) * y(j) * Kernel(i, j),   K: kernel matrix
+% K: kernel matrix
 % m: number of instances
 
 [m, n] = size(X);
@@ -10,21 +10,16 @@ y = 2*Y-1;  % {0,1} -> {-1, +1}
 eps = 1e-3;
 tau = 1e-12;
 
-%disp('precompute start');
-%tic
-% this is for cache
-%K = zeros(m, m);
-
-% special optimization
-%if strcmp(func2str(kernel), 'linear')
-%  K = X*X';
-%elseif strcmp(func2str(kernel), 'polynomial')
-%  K = (param*(X*X'+1)).^4;
-%elseif strfind(func2str(kernel), 'gaussian')
+% optimization
+if strcmp(Kernel, 'linear')
+  K = param*X*X';
+elseif strcmp(Kernel, 'polynomial')
+  K = (param*(X*X'+1)).^4;
+elseif strcmp(Kernel, 'gaussian')
   X2 = sum(X.^2, 2);
   K = bsxfun(@plus, X2, bsxfun(@plus, X2', - 2 * (X * X')));
-  K = Kernel(1, 0, param) .^ K;
-%end
+  K = gaussian(1, 0, param) .^ K;
+end
 
 % ===================
 
@@ -57,9 +52,6 @@ G = -ones(m, 1); % gradient array G to all -1
         end
 
         if (b>0)
-%          a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
-%              y(t)*y(t)*Kernel(X(t,:),X(t,:),param) - ...
-%              2*y(i)*y(t)*y(i)*y(t)*Kernel(X(i,:),X(t,:),param);
           a = y(i)*y(i)*K(i,i) + y(t)*y(t)*K(t,t) - 2*y(i)*y(t)*y(i)*y(t)*K(i,t);
           if (a <= 0)
             a = tau;
@@ -79,9 +71,6 @@ G = -ones(m, 1); % gradient array G to all -1
 
     a = y(i)*y(i)*K(i,i) + y(j)*y(j)*K(j,j) - 2*y(i)*y(j)*y(i)*y(j)*K(i,j);
 
-%    a = y(i)*y(i)*Kernel(X(i,:),X(i,:),param) + ...
-%        y(j)*y(j)*Kernel(X(j,:),X(j,:),param) - ...
-%        2*y(i)*y(j)*y(i)*y(j)*Kernel(X(i,:),X(j,:),param);
     if ( a <= 0)
       a = tau;
     end
@@ -106,14 +95,19 @@ G = -ones(m, 1); % gradient array G to all -1
     deltaAj = A(j) - oldAj;
 
     for t = 1:m
-%      G(t) = G(t) + y(t)*y(i)*Kernel(X(t,:),X(i,:),param)*deltaAi + ...
-%             y(t)*y(j)*Kernel(X(t,:),X(j,:),param)*deltaAj;
       G(t) = G(t) + y(t)*y(i)*K(t,i)*deltaAi + y(t)*y(j)*K(t,j)*deltaAj;
     end
   end
   
   w = ((A.*y)'*X)';
 
-%  disp('train done');
+idx = A>0;
+model.X= X(idx,:);
+model.y= y(idx);
+model.b = b;
+model.A = A(idx);
+model.Kernel = Kernel;
+model.param = param;
+model.w = ((A.*y)'*X)';
 
 end
